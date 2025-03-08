@@ -35,14 +35,14 @@ h1 {
     font-size: 16px;
     margin-right: 10px;
     cursor: pointer;
-    background-color: #007bff;
+    background-color: #ffc0cb; /* 修改为 #ffc0cb */
     color: #fff;
     border: none;
     border-radius: 5px;
 }
 
 #switchBar button:hover {
-    background-color: #0056b3;
+    background-color: #ff69b4; /* 修改为更深的粉色 */
 }
 
 /* 模块内容 */
@@ -69,7 +69,7 @@ button {
     display: block;
     width: 100%;
     padding: 15px;
-    background-color: #007bff;
+    background-color: #ffc0cb; /* 修改为 #ffc0cb */
     color: #fff;
     border: none;
     border-radius: 4px;
@@ -79,11 +79,11 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #ff69b4; /* 修改为更深的粉色 */
 }
 
 .copy-button {
-    background-color: #28a745;
+    background-color: #ffc0cb; /* 修改为 #ffc0cb */
     width: 80px;
     height: 30px;
     font-size: 14px;
@@ -98,7 +98,7 @@ button:hover {
 }
 
 .copy-button:hover {
-    background-color: #218838;
+    background-color: #ff69b4; /* 修改为更深的粉色 */
 }
 
 .item {
@@ -124,4 +124,4 @@ button:hover {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     display: none;
-}
+    }
