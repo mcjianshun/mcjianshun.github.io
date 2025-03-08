@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>剑舜的药材上架网站</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <h1>剑舜的药材上架网站</h1>
+  <!-- 切换栏 -->
+  <div id="switchBar">
+    <button onclick="switchModule('infoExtraction')">信息提取</button>
+    <button onclick="switchModule('valueCalculation')">价值计算</button>
+    <button onclick="switchModule('priceList')">药材价格表</button>
+  </div>
+
+  <!-- 信息提取模块 -->
+  <div id="infoExtraction" class="module active">
+    <h2>信息提取</h2>
+    <p style="text-align: center; color: #888; margin-top: 20px;">有问题或建议找qq:3218525523</p>
+    <p style="text-align: center; color: #888; margin-top: 20px;">与小北对话输入”药材背包“后复制回复内容即可提取</p>
+    <p style="text-align: center; color: #888; margin-top: 20px;">炼金物品请使用小北内置的批量炼金，注意手机无法点击按钮（建议反馈北澪）</p>
+    <label for="user-input"></label><textarea id="user-input" placeholder="请输入..."></textarea><br>
+    <button id="paste-button1">粘贴</button>
+    <button id="process-button">提取</button>
+    <button id="clear-button1">清空</button>
+
+    <h2>药材信息</h2>
+    <div id="herb-info"></div>
+  </div>
+
+  <!-- 价值计算模块 -->
+  <div id="valueCalculation" class="module">
+    <h2>药材总价值计算</h2>
+    <p style="text-align: center; color: #888; margin-top: 20px;">有问题或建议找qq:3218525523</p>
+    <p style="text-align: center; color: #888; margin-top: 20px;">与小北对话输入“药材“后复制回复内容即可提取</p>
+    <label for="herbValueInput"></label><textarea id="herbValueInput" placeholder="粘贴药材信息..."></textarea><br>
+    <button id="paste-button2">粘贴</button>
+    <button onclick="calculateTotalValue()">计算</button>
+    <button id="clear-button2">清空</button>
+    <p id="result">总价值: 0 灵石</p>
+  </div>
+
+  <!-- 药材价格模块 -->
+  <div id="priceList" class="module">
+    <h2>药材价格表</h2>
+    <p style="text-align: center; color: #888; margin-top: 20px;">一品药材200w 二品药材240w 三品主药550w 三品药引150w 三品辅药550w
+      四品主药640w 四品药引190w 四品辅药640w 五品主药700w 五品药引230w 五品辅药700w 六品主药860w 六品药引280w 六品辅药860w 七品主药1000w
+      七品药引520w 七品辅药880w 八品主药1200w 八品药引560w 八品辅药920w 九品主药1400w 九品药引600w 九品辅药1000w </p>
+  </div>
+  
+</div>
+<script src="script.js"></script>
+<!-- 谷歌数据 -->
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-7QLY585NC7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-7QLY585NC7');
+</script>
+</body>
+</html>
