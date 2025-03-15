@@ -25,9 +25,9 @@
     <p style="text-align: center; color: #888; margin-top: 20px;">与小北对话输入”药材背包“后复制回复内容即可提取</p>
     <p style="text-align: center; color: #888; margin-top: 20px;">炼金物品请使用小北内置的批量炼金，注意手机无法点击按钮（建议反馈北澪）</p>
     <label for="user-input"></label><textarea id="user-input" placeholder="请输入..."></textarea><br>
-    <button id="paste-button1">粘贴</button>
+    <button onclick="pasteText('user-input')">粘贴</button>
     <button onclick="processHerbInfo()">提取</button>
-    <button id="clear-button1">清空</button>
+    <button onclick="clearText('user-input')">清空</button>
 
     <h2>药材信息</h2>
     <div id="herb-info"></div>
@@ -39,9 +39,9 @@
     <p style="text-align: center; color: #888; margin-top: 20px;">有问题或建议找qq:3218525523</p>
     <p style="text-align: center; color: #888; margin-top: 20px;">与小北对话输入“药材“后复制回复内容即可提取</p>
     <label for="herbValueInput"></label><textarea id="herbValueInput" placeholder="粘贴药材信息..."></textarea><br>
-    <button id="paste-button2">粘贴</button>
+    <button onclick="pasteText('herbValueInput')">粘贴</button>
     <button onclick="calculateTotalValue()">计算</button>
-    <button id="clear-button2">清空</button>
+    <button onclick="clearText('herbValueInput')">清空</button>
     <p id="result">总价值: 0 灵石</p>
   </div>
 
@@ -66,4 +66,4 @@
   gtag('config', 'G-7QLY585NC7');
 </script>
 </body>
-  </html>
+</html>
