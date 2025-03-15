@@ -161,11 +161,10 @@ function calculateTotalValue() {
     items.forEach(item => {
         const priceText = item.querySelector('span').textContent;
         const price = parseInt(priceText.match(/\d+/g)[1]);
-        const quantity = parseInt(priceText.match(/\d+/g)[2]);
-        totalValue += price * quantity;
+        totalValue += price;
     });
 
-    document.getElementById('result').textContent = `总价值: ${totalValue.toLocaleString()} 灵石`;
+    document.getElementById('result').textContent = `总价值: ${totalValue} 灵石`;
 }
 
 // 提取药材价格
@@ -191,8 +190,7 @@ function extractHerbPrices(text) {
             price = herbPricesData.specialHerbs[herbName];
             found = true;
         }
-
-        // 如果没有找到，再检查生息药材
+// 如果没有找到，再检查生息药材
         if (!found && herbPricesData.shengxi[herbName]) {
             price = herbPricesData.shengxi[herbName];
             found = true;
@@ -240,3 +238,4 @@ class HerbPrice {
         this.quantity = quantity;
     }
 }
+        
