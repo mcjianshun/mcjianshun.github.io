@@ -147,7 +147,8 @@ function togglePricingMode() {
 function processHerbInfo() {
     const text = document.getElementById('user-input').value;
     const herbPrices = extractHerbPrices(text);
-    document.getElementById('herb-info').innerHTML = herbPrices;
+    const result = formatHerbPrices(herbPrices);
+    document.getElementById('herb-info').innerHTML = result;
 }
 
 // 计算药材总价值
@@ -160,7 +161,7 @@ function calculateTotalValue() {
     herbPrices.forEach(herb => {
         const price = herb.price;
         const quantity = herb.quantity;
-        if (!isNaN(price) {
+        if (!isNaN(price)) {
             totalValue += price * quantity; // 累加总价值
         }
     });
@@ -179,8 +180,7 @@ function extractHerbPrices(text) {
         if (match) {
             const herbName = match[1].trim(); // 药材名称
             const quantity = parseInt(match[2]); // 数量
-
-            // 查找药材价格
+             // 查找药材价格
             let price = 0;
             let found = false;
 
@@ -220,11 +220,55 @@ function extractHerbPrices(text) {
     return herbPrices;
 }
 
-// HerbPrice 类
-class HerbPrice {
-    constructor(name, price, quantity) {
-        this.name = name;
-        this.price = price;
-        this.quantity = quantity;
+// 格式化药材价格
+function formatHerbPrices(herbPrices) {
+    herbPrices.sort((a, b) => b.price - a.price);
+    let result = '';
+    for (const herbPrice of herbPrices) {
+        const priceText = `坊市上架 ${herbPrice.name} ${herbPrice.price} ${herbPrice.quantity}`;
+        result += `
+            <div class="item">
+                <span>${priceText}</span>
+                <button class="copy-button" data-text="${priceText}">复制</button>
+            </div>
+            `;
     }
+    return result;
 }
+
+// 绑定按钮事件
+document.getElementById('paste-button1').addEventListener('click', () => {
+    navigator.clipboard.readText().then(text => {
+        document.getElementById('user-input').value = text;
+    });
+});
+
+document.getElementById('process-button').addEventListener('click', processHerbInfo);
+
+document.getElementById('clear-button1').addEventListener('click', () => {
+    document.getElementById('user-input').value = '';
+    document.getElementById('herb-info').innerHTML = '';
+});
+
+document.getElementById('paste-button2').addEventListener('click', () => {
+    navigator.clipboard.readText().then(text => {
+        document.getElementById('herbValueInput').value = text;
+    });
+});
+
+document.getElementById('clear-button2').addEventListener('click', () => {
+    document.getElementById('herbValueInput').value = '';
+    document.getElementById('result').textContent = '总价值: 0 灵石';
+});
+
+document.getElementById('pricingModeButton').addEventListener('click', togglePricingMode);
+
+// 复制按钮事件
+document.addEventListener('click', (event) => {
+    if (event.target.classList.contains('copy-button')) {
+        const text = event.target.getAttribute('data-text');
+        navigator.clipboard.writeText(text).then(() => {
+            alert('已复制到剪贴板');
+        });
+    }
+});
