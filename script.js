@@ -141,80 +141,94 @@ function togglePricingMode() {
         pricingMode = 'normal'; // 切换回正常模式
         pricingModeButton.textContent = '切换上架模式：正常';
     }
-    // 重新提取信息以更新价格
-    if (document.getElementById('infoExtraction').classList.contains('active')) {
-        extractInfo(document.getElementById('user-input').value);
-    }
 }
 
 // 提取药材信息
-function extractInfo(text) {
-    // 提取药材价格
-    function extractHerbPrices(text) {
-        const herbPrices = [];
-        const namePattern = /名字：([^\n]+?)(?=\s+品级：|$)/g;
-        const quantityPattern = /拥有数量：(\d+)/g;
+function processHerbInfo() {
+    const text = document.getElementById('user-input').value;
+    const herbPrices = extractHerbPrices(text);
+    document.getElementById('herb-info').innerHTML = herbPrices;
+}
 
-        let nameMatch;
-        let quantityMatch;
+// 计算药材总价值
+function calculateTotalValue() {
+    const text = document.getElementById('herbValueInput').value;
+    const herbPrices = extractHerbPrices(text);
+    let totalValue = 0;
 
-        // 遍历提取药材信息
-        while ((nameMatch = namePattern.exec(text)) !== null && (quantityMatch = quantityPattern.exec(text)) !== null) {
-            const herbName = nameMatch[1];
-            const quantity = parseInt(quantityMatch[1]);
+    // 计算总价值
+    const items = document.querySelectorAll('#herb-info .item');
+    items.forEach(item => {
+        const priceText = item.querySelector('span').textContent;
+        const price = parseInt(priceText.match(/\d+/g)[1]);
+        totalValue += price;
+    });
 
-            // 查找药材价格
-            let price = 0;
-            let found = false;
+    document.getElementById('result').textContent = `总价值: ${totalValue} 灵石`;
+}
 
-            // 首先检查特殊药材
-            if (herbPricesData.specialHerbs[herbName]) {
-                price = herbPricesData.specialHerbs[herbName];
-                found = true;
-            }
+// 提取药材价格
+function extractHerbPrices(text) {
+    const herbPrices = [];
+    const namePattern = /名字：([^\n]+?)(?=\s+品级：|$)/g;
+    const quantityPattern = /拥有数量：(\d+)/g;
 
-            // 如果没有找到，再检查生息药材
-            if (!found && herbPricesData.shengxi[herbName]) {
-                price = herbPricesData.shengxi[herbName];
-                found = true;
-            }
+    let nameMatch;
+    let quantityMatch;
 
-            // 如果没有找到，再检查非生息药材
-            if (!found && herbPricesData.nonShengxi[herbName]) {
-                price = herbPricesData.nonShengxi[herbName];
-                found = true;
-            }
+    // 遍历提取药材信息
+    while ((nameMatch = namePattern.exec(text)) !== null && (quantityMatch = quantityPattern.exec(text)) !== null) {
+        const herbName = nameMatch[1];
+        const quantity = parseInt(quantityMatch[1]);
 
-            // 如果切换到50万模式，将所有价格设置为50万
-            if (pricingMode === '50w' && found) {
-                price = 500000;
-            }
+        // 查找药材价格
+        let price = 0;
+        let found = false;
 
-            // 如果找到了价格，创建 HerbPrice 对象并加入到列表
-            if (found) {
-                herbPrices.push(new HerbPrice(herbName, price, quantity));
-            } else {
-                // 如果找不到价格，标记为0
-                herbPrices.push(new HerbPrice(herbName, 0, quantity));
-            }
+        // 首先检查特殊药材
+        if (herbPricesData.specialHerbs[herbName]) {
+            price = herbPricesData.specialHerbs[herbName];
+            found = true;
         }
 
-        herbPrices.sort((a, b) => b.price - a.price);
-        let result = '';
-        for (const herbPrice of herbPrices) {
-            const priceText = `坊市上架 ${herbPrice.name} ${herbPrice.price} ${herbPrice.quantity}`;
-            result += `
-                <div class="item">
-                    <span>${priceText}</span>
-                    <button class="copy-button" data-text="${priceText}">复制</button>
-                </div>
-                `;
+        // 如果没有找到，再检查生息药材
+        if (!found && herbPricesData.shengxi[herbName]) {
+            price = herbPricesData.shengxi[herbName];
+            found = true;
         }
-        return result;
+
+        // 如果没有找到，再检查非生息药材
+        if (!found && herbPricesData.nonShengxi[herbName]) {
+            price = herbPricesData.nonShengxi[herbName];
+            found = true;
+        }
+
+        // 如果切换到50万模式，将所有价格设置为50万
+        if (pricingMode === '50w' && found) {
+            price = 500000;
+        }
+
+        // 如果找到了价格，创建 HerbPrice 对象并加入到列表
+        if (found) {
+            herbPrices.push(new HerbPrice(herbName, price, quantity));
+        } else {
+            // 如果找不到价格，标记为0
+            herbPrices.push(new HerbPrice(herbName, 0, quantity));
+        }
     }
 
-    // 更新药材信息显示
-    document.getElementById('herb-info').innerHTML = extractHerbPrices(text);
+    herbPrices.sort((a, b) => b.price - a.price);
+    let result = '';
+    for (const herbPrice of herbPrices) {
+        const priceText = `坊市上架 ${herbPrice.name} ${herbPrice.price} ${herbPrice.quantity}`;
+        result += `
+            <div class="item">
+                <span>${priceText}</span>
+                <button class="copy-button" data-text="${priceText}">复制</button>
+            </div>
+            `;
+    }
+    return result;
 }
 
 // HerbPrice 类
