@@ -143,20 +143,51 @@ function togglePricingMode() {
     }
 }
 
+// 粘贴文本
+function pasteText(textareaId) {
+    navigator.clipboard.readText().then(text => {
+        document.getElementById(textareaId).value = text;
+    }).catch(err => {
+        console.error('无法读取剪贴板内容: ', err);
+    });
+}
+
+// 清空文本
+function clearText(textareaId) {
+    document.getElementById(textareaId).value = '';
+}
+
+// 复制文本
+function copyText(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        console.log('内容已复制到剪贴板');
+    }).catch(err => {
+        console.error('无法复制内容: ', err);
+    });
+}
+
 // 提取药材信息
 function processHerbInfo() {
     const text = document.getElementById('user-input').value;
     const herbPrices = extractHerbPrices(text);
     document.getElementById('herb-info').innerHTML = herbPrices;
+
+    // 绑定复制按钮事件
+    document.querySelectorAll('.copy-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const textToCopy = button.getAttribute('data-text');
+            copyText(textToCopy);
+        });
+    });
 }
 
 // 计算药材总价值
 function calculateTotalValue() {
     const text = document.getElementById('herbValueInput').value;
     const herbPrices = extractHerbPrices(text);
-    let totalValue = 0;
+    document.getElementById('herb-info').innerHTML = herbPrices;
 
-    // 计算总价值
+    let totalValue = 0;
     const items = document.querySelectorAll('#herb-info .item');
     items.forEach(item => {
         const priceText = item.querySelector('span').textContent;
@@ -190,7 +221,8 @@ function extractHerbPrices(text) {
             price = herbPricesData.specialHerbs[herbName];
             found = true;
         }
-// 如果没有找到，再检查生息药材
+
+        // 如果没有找到，再检查生息药材
         if (!found && herbPricesData.shengxi[herbName]) {
             price = herbPricesData.shengxi[herbName];
             found = true;
@@ -238,4 +270,3 @@ class HerbPrice {
         this.quantity = quantity;
     }
 }
-        
