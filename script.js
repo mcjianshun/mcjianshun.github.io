@@ -128,6 +128,7 @@ const herbPricesData = {
         "尘磊岩麟果": 10500000
     }
 };
+
 // 切换上架模式
 let pricingMode = 'normal'; // 默认模式为正常模式
 const pricingModeButton = document.getElementById('pricingModeButton');
@@ -155,48 +156,14 @@ function calculateTotalValue() {
     const herbPrices = extractHerbPrices(text);
     let totalValue = 0;
 
-    // 直接解析输入文本并计算总价值
-    const lines = text.split('\n'); // 按行分割输入文本
-    for (const line of lines) {
-        // 匹配药材名称和数量
-        const match = line.match(/([\u4e00-\u9fa5]+)\s*-\s*[\u4e00-\u9fa5]+\s*-\s*数量:\s*(\d+)/);
-        if (match) {
-            const herbName = match[1].trim(); // 药材名称
-            const quantity = parseInt(match[2]); // 数量
-
-            // 查找药材价格
-            let price = 0;
-            let found = false;
-
-            // 首先检查特殊药材
-            if (herbPricesData.specialHerbs[herbName]) {
-                price = herbPricesData.specialHerbs[herbName];
-                found = true;
-            }
-
-            // 如果没有找到，再检查生息药材
-            if (!found && herbPricesData.shengxi[herbName]) {
-                price = herbPricesData.shengxi[herbName];
-                found = true;
-            }
-
-            // 如果没有找到，再检查非生息药材
-            if (!found && herbPricesData.nonShengxi[herbName]) {
-                price = herbPricesData.nonShengxi[herbName];
-                found = true;
-            }
-
-            // 如果切换到50万模式，将所有价格设置为50万
-            if (pricingMode === '50w' && found) {
-                price = 500000;
-            }
-
-            // 如果找到了价格，累加总价值
-            if (found) {
-                totalValue += price * quantity;
-            }
+    // 计算总价值
+    herbPrices.forEach(herb => {
+        const price = herb.price;
+        const quantity = herb.quantity;
+        if (!isNaN(price) {
+            totalValue += price * quantity; // 累加总价值
         }
-    }
+    });
 
     document.getElementById('result').textContent = `总价值: ${totalValue} 灵石`;
 }
@@ -242,26 +209,15 @@ function extractHerbPrices(text) {
 
             // 如果找到了价格，创建 HerbPrice 对象并加入到列表
             if (found) {
-                herbPrices.push(new HerbPrice(herbName, price, quantity));
+                herbPrices.push({ name: herbName, price: price, quantity: quantity });
             } else {
                 // 如果找不到价格，标记为0
-                herbPrices.push(new HerbPrice(herbName, 0, quantity));
+                herbPrices.push({ name: herbName, price: 0, quantity: quantity });
             }
         }
     }
 
-    herbPrices.sort((a, b) => b.price - a.price);
-    let result = '';
-    for (const herbPrice of herbPrices) {
-        const priceText = `坊市上架 ${herbPrice.name} ${herbPrice.price} ${herbPrice.quantity}`;
-        result += `
-            <div class="item">
-                <span>${priceText}</span>
-                <button class="copy-button" data-text="${priceText}">复制</button>
-            </div>
-            `;
-    }
-    return result;
+    return herbPrices;
 }
 
 // HerbPrice 类
