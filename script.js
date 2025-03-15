@@ -128,7 +128,6 @@ const herbPricesData = {
         "尘磊岩麟果": 10500000
     }
 };
-
 // 切换上架模式
 let pricingMode = 'normal'; // 默认模式为正常模式
 const pricingModeButton = document.getElementById('pricingModeButton');
@@ -160,8 +159,9 @@ function calculateTotalValue() {
     const items = document.querySelectorAll('#herb-info .item');
     items.forEach(item => {
         const priceText = item.querySelector('span').textContent;
-        const price = parseInt(priceText.match(/\d+/g)[1]);
-        totalValue += price;
+        const price = parseInt(priceText.match(/\d+/g)[1]); // 提取价格
+        const quantity = parseInt(priceText.match(/\d+/g)[2]); // 提取数量
+        totalValue += price * quantity; // 累加总价值
     });
 
     document.getElementById('result').textContent = `总价值: ${totalValue} 灵石`;
