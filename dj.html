@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修仙渡劫模拟器 - 增强版</title>
+    <style>
+        :root {
+            --primary: #8a2be2;
+            --secondary: #4b0082;
+            --dark: #1a1a2e;
+            --light: #f0f8ff;
+            --accent: #ff6b6b;
+            --success: #4ade80;
+            --wood: #32CD32;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(25, 20, 60, 0.7);
+            border-radius: 20px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 30px rgba(138, 43, 226, 0.7);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"><path d="M20,20 Q40,5 60,20 T100,20" stroke="rgba(138,43,226,0.1)" fill="none" stroke-width="1"/><path d="M20,40 Q40,25 60,40 T100,40" stroke="rgba(138,43,226,0.1)" fill="none" stroke-width="1"/><path d="M20,60 Q40,45 60,60 T100,60" stroke="rgba(138,43,226,0.1)" fill="none" stroke-width="1"/><path d="M20,80 Q40,65 60,80 T100,80" stroke="rgba(138,43,226,0.1)" fill="none" stroke-width="1"/></svg>');
+            opacity: 0.3;
+            z-index: -1;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: var(--accent);
+            text-shadow: 0 0 15px rgba(255, 107, 107, 0.9);
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.4rem;
+            color: #d8bfd8;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background: rgba(20, 15, 45, 0.85);
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .panel:hover {
+            box-shadow: 0 0 30px rgba(138, 43, 226, 0.8);
+            transform: translateY(-5px);
+        }
+        
+        .panel-title {
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--primary);
+            text-align: center;
+            position: relative;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.7);
+        }
+        
+        .panel-title::after {
+            content: "";
+            position: absolute;
+            bottom: -3px;
+            left: 25%;
+            width: 50%;
+            height: 3px;
+            background: linear-gradient(to right, transparent, var(--accent), transparent);
+        }
+        
+        .setup-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #c5b3e5;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(15, 10, 35, 0.8);
+            border: 2px solid #5a4b9e;
+            border-radius: 12px;
+            color: var(--light);
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+        }
+        
+        .debuff-controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .debuff-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(35, 30, 65, 0.7);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #5a4b9e;
+        }
+        
+        .debuff-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            min-width: 150px;
+        }
+        
+        .wood-debuff {
+            color: var(--wood);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        
+        button:hover::before {
+            transform: translateX(100%);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        #simulate-btn {
+            background: linear-gradient(to right, #4ade80, #22c55e);
+        }
+        
+        #simulate-btn:hover {
+            box-shadow: 0 8px 25px rgba(74, 222, 128, 0.6);
+        }
+        
+        #reset-btn {
+            background: linear-gradient(to right, #f87171, #ef4444);
+        }
+        
+        #reset-btn:hover {
+            box-shadow: 0 8px 25px rgba(248, 113, 113, 0.6);
+        }
+        
+        .battle-log {
+            height: 500px;
+            overflow-y: auto;
+            background: rgba(10, 5, 30, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            border: 2px solid var(--primary);
+            margin-top: 20px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+        }
+        
+        .log-entry {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            animation: fadeIn 0.4s ease;
+            line-height: 1.7;
+            font-size: 1.1rem;
+            border-left: 4px solid transparent;
+        }
+        
+        .player-turn {
+            background: rgba(74, 0, 130, 0.25);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .cloud-turn {
+            background: rgba(139, 0, 0, 0.25);
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .skill {
+            color: #ffa07a;
+        }
+        
+        .damage {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        
+        .heal {
+            color: #4ade80;
+            font-weight: bold;
+        }
+        
+        .critical {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .victory {
+            color: #4ade80;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.4rem;
+            padding: 15px;
+            background: rgba(74, 222, 128, 0.25);
+            border-radius: 12px;
+            margin-top: 15px;
+            border: 2px solid #4ade80;
+            animation: pulse 2s infinite;
+        }
+        
+        .defeat {
+            color: #ff6b6b;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.4rem;
+            padding: 15px;
+            background: rgba(255, 107, 107, 0.25);
+            border-radius: 12px;
+            margin-top: 15px;
+            border: 2px solid #ff6b6b;
+            animation: pulse 2s infinite;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(35, 30, 65, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #5a4b9e;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 15px 0;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.7);
+        }
+        
+        .stat-label {
+            color: #c5b3e5;
+            font-size: 1.1rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px currentColor; }
+            50% { box-shadow: 0 0 20px currentColor; }
+            100% { box-shadow: 0 0 5px currentColor; }
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            background: rgba(35, 30, 65, 0.6);
+            border-radius: 12px 12px 0 0;
+            margin-right: 5px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .tab:hover {
+            background: rgba(74, 0, 130, 0.4);
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .debuff-explanation {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(35, 30, 65, 0.7);
+            border-radius: 15px;
+            border: 2px solid #5a4b9e;
+        }
+        
+        .debuff-explanation h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+        
+        .debuff-explanation ul {
+            padding-left: 30px;
+        }
+        
+        .debuff-explanation li {
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+        
+        .debuff-explanation strong {
+            color: var(--accent);
+        }
+        
+        .character {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .character-card {
+            background: rgba(35, 30, 65, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            width: 45%;
+            border: 2px solid #5a4b9e;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .character-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        
+        .character-name {
+            font-size: 1.6rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+            text-shadow: 0 0 8px rgba(255, 107, 107, 0.7);
+        }
+        
+        .health-bar {
+            height: 25px;
+            background: #222;
+            border-radius: 12px;
+            margin: 15px 0;
+            overflow: hidden;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(to right, #ff6b6b, #ff0000);
+            border-radius: 12px;
+            transition: width 0.7s ease;
+        }
+        
+        .mana-bar {
+            height: 15px;
+            background: #222;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow: hidden;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+        }
+        
+        .mana-fill {
+            height: 100%;
+            background: linear-gradient(to right, #4a90e2, #0066cc);
+            border-radius: 8px;
+            transition: width 0.7s ease;
+        }
+        
+        .hp-label, .mp-label {
+            font-size: 1.1rem;
+            color: #c5b3e5;
+            margin-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #a9a9ff;
+            font-size: 1.1rem;
+            margin-top: 30px;
+            border-top: 2px solid rgba(138, 43, 226, 0.3);
+        }
+        
+        .debuff-value-input {
+            width: 100px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #5a4b9e;
+            background: rgba(15, 10, 35, 0.8);
+            color: var(--light);
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        
+        .wood-inputs {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .wood-inputs input {
+            width: 80px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>修仙渡劫模拟器</h1>
+            <p class="subtitle">选择功法、辅修和神通，调整天劫Debuff参数，挑战无上仙道！</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="panel">
+                <h2 class="panel-title">修炼设置</h2>
+                
+                <div class="character">
+                    <div class="character-card">
+                        <div class="character-name">修仙者</div>
+                        <div class="hp-label">气血: <span id="player-hp">100%</span></div>
+                        <div class="health-bar">
+                            <div class="health-fill" id="player-health-bar" style="width: 100%"></div>
+                        </div>
+                        <div class="mp-label">真元: <span id="player-mp">100%</span></div>
+                        <div class="mana-bar">
+                            <div class="mana-fill" id="player-mana-bar" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="character-card">
+                        <div class="character-name">劫云</div>
+                        <div class="hp-label">气血: <span id="cloud-hp">100%</span></div>
+                        <div class="health-bar">
+                            <div class="health-fill" id="cloud-health-bar" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setup-section">
+                    <div class="form-group">
+                        <label for="cultivation">修炼功法</label>
+                        <select id="cultivation">
+                            <option value="八九玄功">八九玄功</option>
+                            <option value="太虚乾元诀">太虚乾元诀</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="support">辅修功法</label>
+                        <select id="support">
+                            <option value="日月双华">日月双华</option>
+                            <option value="阴阳玄鉴">阴阳玄鉴</option>
+                            <option value="玄清天衍录">玄清天衍录</option>
+                            <option value="真龙九变">真龙九变</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="skill">神通选择</label>
+                        <select id="skill">
+                            <option value="万剑归宗">万剑归宗</option>
+                            <option value="灭剑血胧">灭剑血胧</option>
+                            <option value="五指拳心剑">五指拳心剑</option>
+                            <option value="袖里乾坤">袖里乾坤</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="debuff">天劫Debuff</label>
+                        <select id="debuff">
+                            <option value="火帝炼魔神炎">火帝炼魔神炎</option>
+                            <option value="金帝破玄剑气">金帝破玄剑气</option>
+                            <option value="水帝至柔华盖">水帝至柔华盖</option>
+                            <option value="木帝回灵法光">木帝回灵法光</option>
+                            <option value="土帝自在遁法">土帝自在遁法</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="debuff-control">Debuff参数</div>
+                    <div class="tab" data-tab="debuff-info">Debuff说明</div>
+                </div>
+                
+                <div class="tab-content active" id="debuff-control">
+                    <div class="debuff-controls">
+                        <div class="debuff-item">
+                            <span class="debuff-name">火帝炼魔神炎</span>
+                            <input type="number" id="fire-value" class="debuff-value-input" value="10">
+                        </div>
+                        <div class="debuff-item">
+                            <span class="debuff-name">金帝破玄剑气</span>
+                            <input type="number" id="metal-value" class="debuff-value-input" value="250">
+                        </div>
+                        <div class="debuff-item">
+                            <span class="debuff-name">水帝至柔华盖</span>
+                            <input type="number" id="water-value" class="debuff-value-input" value="45">
+                        </div>
+                        <div class="debuff-item">
+                            <span class="debuff-name wood-debuff">木帝回灵法光</span>
+                            <div class="wood-inputs">
+                                <input type="number" id="wood-trigger-value" class="debuff-value-input" value="35" placeholder="概率">
+                                <input type="number" id="wood-heal-value" class="debuff-value-input" value="35" placeholder="回血%">
+                            </div>
+                        </div>
+                        <div class="debuff-item">
+                            <span class="debuff-name">土帝自在遁法</span>
+                            <input type="number" id="earth-value" class="debuff-value-input" value="40">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="debuff-info">
+                    <div class="debuff-explanation">
+                        <h3>五帝神魔玄功 Debuff 说明</h3>
+                        <ul>
+                            <li><strong>火帝炼魔神炎</strong>：对修仙者造成百分比气血反噬</li>
+                            <li><strong>金帝破玄剑气</strong>：增加劫云造成的伤害</li>
+                            <li><strong>水帝至柔华盖</strong>：增加劫云的防御力</li>
+                            <li><strong>木帝回灵法光</strong>：劫云有概率回复自身气血（需设置触发概率和回血百分比）</li>
+                            <li><strong>土帝自在遁法</strong>：劫云有概率躲避修仙者的攻击</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="simulate-btn">模拟战斗</button>
+                    <button id="reset-btn">重置战斗</button>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">战斗回合</div>
+                        <div class="stat-value" id="round-count">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">战斗结果</div>
+                        <div class="stat-value" id="battle-result">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title">战斗日志</h2>
+                <div class="battle-log" id="battle-log">
+                    <div class="log-entry">等待战斗开始...选择您的修炼配置后点击"模拟战斗"按钮</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            修仙渡劫模拟器 - 增强版 | 可自由调整所有参数 | 木帝回灵法光支持双参数配置
+        </div>
+    </div>
+
+    <script>
+        // 游戏数据
+        const gameData = {
+            player: {
+                name: "剑舜",
+                baseHp: 2178750.0,
+                baseAttack: 1459481.8,
+                baseMpBase: 375000,
+                currentHp: 0,
+                currentMp: 0,
+                baseHpFinal: 0,
+                baseAttackFinal: 0,
+                baseMpTotal: 0,
+                critRate: 1.0,
+                penRate: 0.04,
+                defense: 0.19,
+                bossBonus: 0.35,
+                critDamage: 3.7,
+                wanjianDuration: 0,
+                sleeveTrapped: false,
+                sleeveMultiplier: 5,
+                fingerProb: 0.6,
+                lifesteal: 0,
+                manaSteal: 0,
+                cultivationMethod: "",
+                support: "",
+                skill: ""
+            },
+            
+            cloud: {
+                name: "劫云",
+                baseHp: 150000000,
+                defense: 0.5,
+                attack: 30000,
+                critRate: 0.0,
+                critDamage: 1.0,
+                currentHp: 0,
+                debuff: "",
+                triggerProb: 0,
+                selfDamagePercent: 0,
+                healPercent: 0,
+                damageBonus: 0,
+                dodgeProb: 0
+            },
+            
+            battleLog: [],
+            currentRound: 0,
+            battleResult: ""
+        };
+        
+        // DOM 元素
+        const elements = {
+            cultivation: document.getElementById('cultivation'),
+            support: document.getElementById('support'),
+            skill: document.getElementById('skill'),
+            debuff: document.getElementById('debuff'),
+            fireValue: document.getElementById('fire-value'),
+            metalValue: document.getElementById('metal-value'),
+            waterValue: document.getElementById('water-value'),
+            woodTriggerValue: document.getElementById('wood-trigger-value'),
+            woodHealValue: document.getElementById('wood-heal-value'),
+            earthValue: document.getElementById('earth-value'),
+            simulateBtn: document.getElementById('simulate-btn'),
+            resetBtn: document.getElementById('reset-btn'),
+            battleLog: document.getElementById('battle-log'),
+            playerHp: document.getElementById('player-hp'),
+            playerMp: document.getElementById('player-mp'),
+            playerHealthBar: document.getElementById('player-health-bar'),
+            playerManaBar: document.getElementById('player-mana-bar'),
+            cloudHp: document.getElementById('cloud-hp'),
+            cloudHealthBar: document.getElementById('cloud-health-bar'),
+            roundCount: document.getElementById('round-count'),
+            battleResult: document.getElementById('battle-result'),
+            tabs: document.querySelectorAll('.tab')
+        };
+        
+        // 初始化游戏
+        function initGame() {
+            // 获取玩家选择
+            gameData.player.cultivationMethod = elements.cultivation.value;
+            gameData.player.support = elements.support.value;
+            gameData.player.skill = elements.skill.value;
+            
+            // 设置劫云debuff
+            gameData.cloud.debuff = elements.debuff.value;
+            
+            // 初始化玩家属性
+            initPlayer();
+            
+            // 初始化劫云
+            initCloud();
+            
+            // 重置战斗日志
+            gameData.battleLog = [];
+            elements.battleLog.innerHTML = '';
+            
+            // 重置回合和结果
+            gameData.currentRound = 0;
+            gameData.battleResult = "";
+            
+            // 更新UI
+            updateUI();
+            
+            // 添加初始日志
+            addLog(`天威浩荡！尔等岂能撼动分毫！获得50%减伤！${gameData.cloud.name}使用了五帝神魔玄功，发动了${gameData.cloud.debuff}!`);
+            
+            if (gameData.player.cultivationMethod === "八九玄功") {
+                const gainTypes = ["吸血", "穿甲", "减伤"];
+                const gainType = gainTypes[Math.floor(Math.random() * gainTypes.length)];
+                let gainValue;
+                
+                if (gainType === "吸血") gainValue = Math.floor(Math.random() * 3) + 3;
+                else if (gainType === "穿甲") gainValue = Math.floor(Math.random() * 26) + 15;
+                else gainValue = Math.floor(Math.random() * 11) + 5;
+                
+                addLog(`${gameData.player.name}发动了八九玄功, 获得了${gainValue}%${gainType}！`);
+            }
+            
+            if (gameData.player.support === "日月双华") {
+                addLog(`使用功法日月双华, 提升6%气血真元吸取`);
+            } else if (gameData.player.support === "阴阳玄鉴") {
+                addLog(`使用功法阴阳玄鉴, 提升6%每回合气血回复, 提升6%每回合真元回复`);
+            } else if (gameData.player.support === "玄清天衍录") {
+                addLog(`使用功法玄清天衍录, 提升7%每回合真元回复`);
+            } else if (gameData.player.support === "真龙九变") {
+                addLog(`使用功法真龙九变, 提升70%攻击力`);
+            }
+        }
+        
+        // 初始化玩家属性
+        function initPlayer() {
+            const baseHp = gameData.player.baseHp;
+            const baseAttack = gameData.player.baseAttack;
+            const baseMpBase = gameData.player.baseMpBase;
+            
+            if (gameData.player.cultivationMethod === "八九玄功") {
+                gameData.player.baseHpFinal = baseHp * 1.7;
+                gameData.player.baseAttackFinal = baseAttack;
+            } else if (gameData.player.cultivationMethod === "太虚乾元诀") {
+                gameData.player.baseHpFinal = baseHp * 1.7 * (1112/1162);
+                gameData.player.baseAttackFinal = baseAttack * (4.3/3.4);
+            }
+            
+            gameData.player.baseMpTotal = baseMpBase * 8.34;
+            gameData.player.currentHp = gameData.player.baseHpFinal;
+            gameData.player.currentMp = gameData.player.baseMpTotal;
+            
+            // 重置状态
+            gameData.player.wanjianDuration = 0;
+            gameData.player.sleeveTrapped = false;
+            gameData.player.sleeveMultiplier = 5;
+            gameData.player.fingerProb = 0.6;
+            gameData.player.lifesteal = 0;
+            gameData.player.manaSteal = 0;
+            
+            // 设置辅修效果
+            if (gameData.player.support === "日月双华") {
+                gameData.player.lifesteal += 0.06;
+                gameData.player.manaSteal += 0.06;
+            }
+        }
+        
+        // 初始化劫云
+        function initCloud() {
+            gameData.cloud.currentHp = gameData.cloud.baseHp;
+            const debuff = gameData.cloud.debuff;
+            
+            if (debuff === "火帝炼魔神炎") {
+                gameData.cloud.selfDamagePercent = parseFloat(elements.fireValue.value) || 10;
+            } else if (debuff === "金帝破玄剑气") {
+                gameData.cloud.damageBonus = (parseFloat(elements.metalValue.value) || 250) / 100;
+            } else if (debuff === "水帝至柔华盖") {
+                gameData.cloud.defense += (parseFloat(elements.waterValue.value) || 45) / 100;
+            } else if (debuff === "木帝回灵法光") {
+                gameData.cloud.triggerProb = parseFloat(elements.woodTriggerValue.value) || 35;
+                gameData.cloud.healPercent = parseFloat(elements.woodHealValue.value) || 35;
+            } else if (debuff === "土帝自在遁法") {
+                gameData.cloud.dodgeProb = (parseFloat(elements.earthValue.value) || 40) / 100;
+            }
+        }
+        
+        // 计算伤害
+        function calculateDamage(skillMultiplier = 1.0) {
+            let baseDamage = gameData.player.baseAttackFinal * skillMultiplier * (1 + gameData.player.bossBonus);
+            
+            if (gameData.player.support === "真龙九变" && skillMultiplier > 1.0) {
+                if (gameData.player.skill !== "万剑归宗") {
+                    baseDamage *= 1.7;
+                }
+            }
+            
+            const isCrit = Math.random() < gameData.player.critRate;
+            if (isCrit) {
+                baseDamage *= gameData.player.critDamage;
+            }
+            
+            const effectiveDefense = Math.max(0, gameData.cloud.defense - gameData.player.penRate);
+            const finalDamage = baseDamage * (1 - effectiveDefense);
+            
+            return {
+                damage: finalDamage,
+                isCrit: isCrit
+            };
+        }
+        
+        // 模拟战斗
+        function simulateBattle() {
+            initGame();
+            
+            // 最多20回合
+            for (let round = 1; round <= 20; round++) {
+                gameData.currentRound = round;
+                addLog(`☆------${gameData.player.name}的回合------☆`, "player-turn");
+                
+                // 玩家回合
+                playerTurn();
+                
+                // 检查劫云是否被击败
+                if (gameData.cloud.currentHp <= 0) {
+                    gameData.battleResult = "胜利";
+                    addLog(`${gameData.player.name}胜利`, "victory");
+                    updateUI();
+                    return;
+                }
+                
+                // 劫云回合
+                addLog(`☆------${gameData.cloud.name}的回合------☆`, "cloud-turn");
+                cloudTurn();
+                
+                // 检查玩家是否被击败
+                if (gameData.player.currentHp <= 0) {
+                    gameData.battleResult = "失败";
+                    addLog(`${gameData.cloud.name}胜利`, "defeat");
+                    updateUI();
+                    return;
+                }
+                
+                updateUI();
+            }
+            
+            // 20回合结束
+            gameData.battleResult = "平局";
+            addLog(`战斗结束，双方未分胜负`, "defeat");
+            updateUI();
+        }
+        
+        // 玩家回合
+        function playerTurn() {
+            let damage = 0;
+            let skillUsed = false;
+            let mpCost = 0;
+            let hpCost = 0;
+            let isCrit = false;
+            
+            // 万剑归宗持续效果
+            if (gameData.player.skill === "万剑归宗" && gameData.player.wanjianDuration > 0) {
+                const result = calculateDamage(5.51);
+                damage = result.damage;
+                isCrit = result.isCrit;
+                
+                if (isCrit) {
+                    addLog(`${gameData.player.name}发起会心一击，造成了${formatNumber(damage)}亿伤害`, "skill critical");
+                } else {
+                    addLog(`${gameData.player.name}造成了${formatNumber(damage)}亿伤害`);
+                }
+                
+                gameData.player.wanjianDuration--;
+                skillUsed = true;
+            }
+            // 袖里乾坤持续效果
+            else if (gameData.player.skill === "袖里乾坤" && gameData.player.sleeveTrapped) {
+                if (Math.random() < 0.1) {
+                    gameData.player.sleeveTrapped = false;
+                    addLog(`对方以力破界，竟破开了袖中天地，逃脱出来`);
+                } else {
+                    const result = calculateDamage(gameData.player.sleeveMultiplier);
+                    damage = result.damage;
+                    isCrit = result.isCrit;
+                    
+                    let logText = `${gameData.player.name}发动技能：袖里乾坤，乾坤反噬，万物寂灭！袖藏日月，尽归我掌！封！`;
+                    if (isCrit) {
+                        logText += "并且发生了会心一击，";
+                    }
+                    logText += `造成${formatNumber(damage)}亿点伤害！`;
+                    
+                    addLog(logText, "skill");
+                    gameData.player.sleeveMultiplier++;
+                    skillUsed = true;
+                }
+            }
+            // 万剑归宗
+            else if (gameData.player.skill === "万剑归宗" && Math.random() < 0.99) {
+                mpCost = gameData.player.baseMpBase * 1.5;
+                
+                if (gameData.player.currentMp >= mpCost) {
+                    // 检查土帝遁法
+                    if (gameData.cloud.debuff === "土帝自在遁法" && Math.random() < gameData.cloud.dodgeProb) {
+                        addLog(`${gameData.player.name}发动技能：万剑归宗，消耗气血0点、真元${formatNumber(mpCost)}亿点，万剑归宗！！！攻击力增加4.51倍，持续5回合！`, "skill");
+                        addLog(`${gameData.cloud.name}发动土帝自在遁法，躲避了${gameData.player.name}的此次攻击！`);
+                        addLog(`造成0伤害`);
+                    } else {
+                        gameData.player.wanjianDuration = 5;
+                        const result = calculateDamage(5.51);
+                        damage = result.damage;
+                        isCrit = result.isCrit;
+                        
+                        let logText = `${gameData.player.name}发动技能：万剑归宗，消耗气血0点、真元${formatNumber(mpCost)}亿点，万剑归宗！！！攻击力增加4.51倍，持续5回合！\n`;
+                        if (isCrit) {
+                            logText += `${gameData.player.name}发起会心一击，`;
+                        }
+                        logText += `造成了${formatNumber(damage)}亿伤害`;
+                        
+                        addLog(logText, "skill");
+                    }
+                    
+                    gameData.player.currentMp -= mpCost;
+                    skillUsed = true;
+                }
+            }
+            // 灭剑血胧
+            else if (gameData.player.skill === "灭剑血胧" && Math.random() < 0.75) {
+                mpCost = gameData.player.baseMpBase * 0.65;
+                hpCost = gameData.player.currentHp * 0.03;
+                
+                if (gameData.player.currentMp >= mpCost) {
+                    // 检查土帝遁法
+                    if (gameData.cloud.debuff === "土帝自在遁法" && Math.random() < gameData.cloud.dodgeProb) {
+                        addLog(`${gameData.player.name}发动技能：灭剑血胧，消耗气血${formatNumber(hpCost)}亿点、真元${formatNumber(mpCost)}亿点，灭！！！！`, "skill");
+                        addLog(`${gameData.cloud.name}发动土帝自在遁法，躲避了${gameData.player.name}的此次攻击！`);
+                        addLog(`造成0伤害!`);
+                    } else {
+                        const result = calculateDamage(7.5);
+                        damage = result.damage;
+                        isCrit = result.isCrit;
+                        
+                        let logText = `${gameData.player.name}发动技能：灭剑血胧，消耗气血${formatNumber(hpCost)}亿点、真元${formatNumber(mpCost)}亿点，灭！！！！`;
+                        if (isCrit) {
+                            logText += "并且发生了会心一击，";
+                        }
+                        logText += `造成${formatNumber(damage)}亿伤害!`;
+                        
+                        addLog(logText, "skill");
+                    }
+                    
+                    gameData.player.currentMp -= mpCost;
+                    gameData.player.currentHp -= hpCost;
+                    skillUsed = true;
+                }
+            }
+            // 五指拳心剑
+            else if (gameData.player.skill === "五指拳心剑" && Math.random() < gameData.player.fingerProb) {
+                mpCost = gameData.player.baseMpBase * 0.8;
+                hpCost = gameData.player.currentHp * 0.02;
+                
+                if (gameData.player.currentMp >= mpCost) {
+                    // 检查土帝遁法
+                    if (gameData.cloud.debuff === "土帝自在遁法" && Math.random() < gameData.cloud.dodgeProb) {
+                        addLog(`${gameData.player.name}发动技能：五指拳心剑，消耗气血${formatNumber(hpCost)}亿点、真元${formatNumber(mpCost)}亿点，剑气凌霄日月寒，五指拳心破九天`, "skill");
+                        addLog(`${gameData.cloud.name}发动土帝自在遁法，躲避了${gameData.player.name}的此次攻击！`);
+                        addLog(`造成0伤害!`);
+                    } else {
+                        const multipliers = [0.5, 1.0, 2.0, 4.0, 8.0];
+                        const damages = [];
+                        let totalDamage = 0;
+                        
+                        multipliers.forEach(mult => {
+                            const result = calculateDamage(mult);
+                            const segmentDamage = result.damage;
+                            damages.push(segmentDamage);
+                            totalDamage += segmentDamage;
+                        });
+                        
+                        damage = totalDamage;
+                        
+                        const damageText = damages.map(d => formatNumber(d)).join("亿、");
+                        addLog(`${gameData.player.name}发动技能：五指拳心剑，消耗气血${formatNumber(hpCost)}亿点、真元${formatNumber(mpCost)}亿点，剑气凌霄日月寒，五指拳心破九天造成${damageText}亿伤害!`, "skill");
+                    }
+                    
+                    gameData.player.currentMp -= mpCost;
+                    gameData.player.currentHp -= hpCost;
+                    gameData.player.fingerProb = 0.6;
+                    skillUsed = true;
+                } else {
+                    gameData.player.fingerProb = Math.min(1.0, gameData.player.fingerProb + 0.1);
+                }
+            }
+            // 袖里乾坤
+            else if (gameData.player.skill === "袖里乾坤") {
+                mpCost = gameData.player.baseMpBase * 1.2;
+                hpCost = gameData.player.currentHp * 0.03;
+                
+                if (gameData.player.currentMp >= mpCost) {
+                    // 检查土帝遁法
+                    if (gameData.cloud.debuff === "土帝自在遁法" && Math.random() < gameData.cloud.dodgeProb) {
+                        addLog(`${gameData.player.name}发动技能：袖里乾坤，袖藏日月，尽归我掌！封！消耗气血${formatNumber(hpCost)}亿点、真元${formatNumber(mpCost)}亿点，袖藏日月，尽归我掌！封！`, "skill");
+                        addLog(`${gameData.cloud.name}发动土帝自在遁法，躲避了${gameData.player.name}的此次攻击！`);
+                        addLog(`造成0点伤害！`);
+                    } else {
+                        const result = calculateDamage(5);
+                        damage = result.damage;
+                        isCrit = result.isCrit;
+                        
+                        gameData.player.sleeveTrapped = true;
+                        gameData.player.sleeveMultiplier = 5;
+                        
+                        let logText = `${gameData.player.name}发动技能：袖里乾坤，袖藏日月，尽归我掌！封！消耗气血${formatNumber(hpCost)}亿点、真元${formatNumber(mpCost)}亿点，袖藏日月，尽归我掌！封！`;
+                        if (isCrit) {
+                            logText += "并且发生了会心一击，";
+                        }
+                        logText += `造成${formatNumber(damage)}亿点伤害！`;
+                        
+                        addLog(logText, "skill");
+                    }
+                    
+                    gameData.player.currentMp -= mpCost;
+                    gameData.player.currentHp -= hpCost;
+                    skillUsed = true;
+                }
+            }
+            
+            // 普通攻击
+            if (!skillUsed && !(gameData.player.skill === "袖里乾坤" && gameData.player.sleeveTrapped)) {
+                const result = calculateDamage(1.0);
+                damage = result.damage;
+                isCrit = result.isCrit;
+                
+                if (isCrit) {
+                    addLog(`${gameData.player.name}发起会心一击，造成了${formatNumber(damage)}亿伤害`, "critical");
+                } else {
+                    addLog(`${gameData.player.name}造成了${formatNumber(damage)}亿伤害`);
+                }
+                
+                skillUsed = true;
+            }
+            
+            // 应用伤害
+            if (skillUsed && damage > 0) {
+                gameData.cloud.currentHp -= damage;
+                
+                // 吸血效果
+                const lifeSteal = damage * gameData.player.lifesteal;
+                const mpSteal = damage * gameData.player.manaSteal;
+                
+                if (lifeSteal > 0 || mpSteal > 0) {
+                    gameData.player.currentHp = Math.min(gameData.player.baseHpFinal, gameData.player.currentHp + lifeSteal);
+                    gameData.player.currentMp = Math.min(gameData.player.baseMpTotal, gameData.player.currentMp + mpSteal);
+                    
+                    if (gameData.player.support !== "真龙九变" && gameData.player.support !== "玄清天衍录") {
+                        addLog(`吸取气血: ${formatNumber(lifeSteal)}亿, 吸取真元: ${formatNumber(mpSteal)}亿`, "heal");
+                    }
+                }
+            }
+            
+            // 显示劫云剩余血量
+            addLog(`${gameData.cloud.name}剩余血量${formatNumber(Math.max(0, gameData.cloud.currentHp))}亿`);
+            
+            // 火帝炼魔神炎反噬
+            if (gameData.cloud.debuff === "火帝炼魔神炎") {
+                const selfDamage = gameData.player.baseHpFinal * (gameData.cloud.selfDamagePercent / 100);
+                gameData.player.currentHp -= selfDamage;
+                addLog(`${gameData.player.name}受到火帝炼魔神炎反噬，损失${formatNumber(selfDamage)}亿气血！`, "damage");
+            }
+        }
+        
+        // 劫云回合
+        function cloudTurn() {
+            let damageMultiplier = 1.0;
+            let isCrit = false;
+            let skillText = "神雷！！！";
+            
+            const skillChoice = Math.random();
+            if (skillChoice < 0.1) {
+                damageMultiplier = 2.5;
+                isCrit = true;
+                skillText = "九霄神雷！！！";
+            } else if (skillChoice < 0.2) {
+                damageMultiplier = 5.0;
+                isCrit = true;
+                skillText = "天罚！！！";
+            } else {
+                isCrit = Math.random() < gameData.cloud.critRate;
+            }
+            
+            let baseDamage = gameData.cloud.attack * damageMultiplier;
+            if (isCrit) {
+                baseDamage *= gameData.cloud.critDamage;
+            }
+            
+            if (gameData.cloud.debuff === "金帝破玄剑气") {
+                baseDamage *= (1 + gameData.cloud.damageBonus);
+            }
+            
+            const finalDamage = baseDamage * (1 - gameData.player.defense);
+            gameData.player.currentHp -= finalDamage;
+            
+            if (isCrit) {
+                skillText += "并且发生了会心一击，";
+            }
+            
+            addLog(`${skillText}造成${formatNumber(finalDamage)}亿伤害!`, "damage");
+            addLog(`${gameData.player.name}剩余血量${formatNumber(Math.max(0, gameData.player.currentHp))}亿`);
+            
+            // 木帝回灵法光回复
+            if (gameData.cloud.debuff === "木帝回灵法光" && Math.random() < gameData.cloud.triggerProb/100) {
+                const heal = gameData.cloud.baseHp * (gameData.cloud.healPercent / 100);
+                gameData.cloud.currentHp = Math.min(gameData.cloud.baseHp, gameData.cloud.currentHp + heal);
+                addLog(`${gameData.cloud.name}发动木帝回灵法光，回复了${formatNumber(heal)}亿气血！`, "heal");
+            }
+        }
+        
+        // 添加日志
+        function addLog(message, className = "") {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${className}`;
+            logEntry.innerHTML = message;
+            elements.battleLog.appendChild(logEntry);
+            elements.battleLog.scrollTop = elements.battleLog.scrollHeight;
+            
+            // 添加到游戏数据
+            gameData.battleLog.push({
+                message: message,
+                className: className
+            });
+        }
+        
+        // 更新UI
+        function updateUI() {
+            // 更新血量条
+            const playerHpPercent = (gameData.player.currentHp / gameData.player.baseHpFinal) * 100;
+            elements.playerHealthBar.style.width = `${Math.max(0, playerHpPercent)}%`;
+            elements.playerHp.textContent = `${formatNumber(gameData.player.currentHp)} / ${formatNumber(gameData.player.baseHpFinal)}`;
+            
+            const playerMpPercent = (gameData.player.currentMp / gameData.player.baseMpTotal) * 100;
+            elements.playerManaBar.style.width = `${Math.max(0, playerMpPercent)}%`;
+            elements.playerMp.textContent = `${formatNumber(gameData.player.currentMp)} / ${formatNumber(gameData.player.baseMpTotal)}`;
+            
+            const cloudHpPercent = (gameData.cloud.currentHp / gameData.cloud.baseHp) * 100;
+            elements.cloudHealthBar.style.width = `${Math.max(0, cloudHpPercent)}%`;
+            elements.cloudHp.textContent = `${formatNumber(gameData.cloud.currentHp)} / ${formatNumber(gameData.cloud.baseHp)}`;
+            
+            // 更新回合和结果
+            elements.roundCount.textContent = gameData.currentRound;
+            elements.battleResult.textContent = gameData.battleResult;
+        }
+        
+        // 格式化数字
+        function formatNumber(num) {
+            return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        
+        // 事件监听
+        elements.simulateBtn.addEventListener('click', simulateBattle);
+        
+        elements.resetBtn.addEventListener('click', () => {
+            elements.battleLog.innerHTML = '<div class="log-entry">等待战斗开始...选择您的修炼配置后点击"模拟战斗"按钮</div>';
+            initGame();
+            updateUI();
+        });
+        
+        // Debuff标签切换
+        elements.tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 移除所有active类
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // 添加active类到当前标签
+                tab.classList.add('active');
+                const tabName = tab.getAttribute('data-tab');
+                document.getElementById(tabName).classList.add('active');
+            });
+        });
+        
+        // 初始化游戏
+        initGame();
+    </script>
+</body>
+</html>
