@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查询上架v0.2</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            margin: 0;
+            padding: 0 10px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            position: static;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #ffb6c1;
+            color: #333;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #ff91a4;
+        }
+        .copy-button {
+            background-color: #ffb6c1;
+            padding: 0;
+            width: 80px;
+            height: 30px;
+            font-size: 14px;
+            line-height: 30px;
+            cursor: pointer;
+            border: none;
+            margin-left: 10px;
+            text-align: center;
+            color: #333;
+            display: inline-block;
+        }
+        .copy-button:hover {
+            background-color: #ff91a4;
+        }
+        .item {
+            margin-bottom: 3px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .item span {
+            white-space: nowrap;
+            font-size: 10px;
+            line-height: 15px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            button {
+                padding: 10px;
+            }
+        }
+        #notification {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ffb6c1;
+            color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+        }
+        #profit-display {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+        }
+        .summary {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f8ff;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        .summary-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        .copyright {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            padding: 10px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>查询上架v0.2</h1>
+        <textarea id="user-input" placeholder="请输入药材背包内容..."></textarea>
+        <button id="process-button">查上架</button>
+        <button id="clear-button">清空</button>
+        <div id="profit-display"></div>
+        <div id="herb-info">&nbsp;</div>
+        <div id="herb-summary" class="summary">
+            <div class="summary-title">药材品阶数量总结</div>
+            <div id="summary-content"></div>
+        </div>
+        <div class="copyright">Powered by 清游 · 版本 v0.2</div>
+    </div>
+
+    <script>
+        const herbPrices = {
+            '尘磊岩麟果': 940.0,
+            '离火梧桐芝': 940.0,
+            '剑魄竹笋': 840.0,
+            '明心问道果': 840.0,
+            '炼心芝': 350.0,
+            '重元换血草': 350.0,
+            '太乙碧莹花': 320.0,
+            '森檀木': 320.0,
+            '鬼面花': 370.0,
+            '梧桐木': 370.0,
+            '龙须藤': 370.0,
+            '地龙干': 370.0,
+            '木灵三针花': 730.0,
+            '鎏鑫天晶草': 730.0,
+            '檀芒九叶花': 690.0,
+            '坎水玄冰果': 690.0,
+            '浩淼水藤': 340.0,
+            '道蕴花': 340.0,
+            '阴阳黄泉花': 300.0,
+            '厉魂血珀': 300.0,
+            '太清玄灵草': 370.0,
+            '冥胎骨': 370.0,
+            '狼桃': 370.0,
+            '霸王花': 370.0,
+            '地心淬灵乳': 520.0,
+            '天麻翡石精': 520.0,
+            '八角玄冰草': 500.0,
+            '奇茸通天菊': 500.0,
+            '芒焰果': 320.0,
+            '问道花': 320.0,
+            '凤血果': 370.0,
+            '冰精芝': 370.0,
+            '血玉竹': 370.0,
+            '肠蚀草': 370.0,
+            '三叶青芝': 390.0,
+            '七彩月兰': 390.0,
+            '三尾风叶': 380.0,
+            '冰灵焰草': 380.0,
+            '血菩提': 300.0,
+            '诱妖草': 300.0,
+            '混元果': 360.0,
+            '皇龙花': 360.0,
+            '黑天麻': 360.0,
+            '天剑笋': 330.0,
+            '地心火芝': 300.0,
+            '天蝉灵叶': 300.0,
+            '雪玉骨参': 300.0,
+            '腐骨灵花': 300.0,
+            '穿心莲': 250.0,
+            '龙鳞果': 250.0,
+            '绝魂草': 290.0,
+            '月灵花': 290.0,
+            '伴妖草': 290.0,
+            '剑心竹': 290.0,
+            '血莲精': 280.0,
+            '鸡冠草': 280.0,
+            '银精芝': 240.0,
+            '玉髓芝': 240.0,
+            '雪凝花': 290.0,
+            '龙纹草': 290.0,
+            '冰灵果': 290.0,
+            '玉龙参': 290.0,
+            '锦地罗': 290.0,
+            '石龙芮': 290.0,
+            
+            '恒心草': 280.0,
+            '红绫草': 280.0,
+            '罗犀草': 100.0,
+            '天青花': 100.0,
+            '宁心草': 280.0,
+            '宁神花': 100.0,
+            '凝血草': 280.0,
+            '银月花': 100.0,
+            '地黄参': 280.0,
+            '火精枣': 280.0,
+            '剑芦': 90.0,
+            '七星草': 90.0,
+            
+            '五柳根': 280.0,
+            '天元果': 280.0,
+            '何首乌': 140.0,
+            '夜交藤': 140.0,
+            '流莹草': 280.0,
+            '夏枯草': 170.0,
+            '蛇涎果': 280.0,
+            '百草露': 170.0,
+            '风灵花': 280.0,
+            '伏龙参': 280.0,
+            '补天芝': 140.0,
+            '凌风花': 140.0,
+            
+            '紫猴花': 280.0,
+            '幻心草': 210.0,
+            '九叶芝': 280.0,
+            '鬼臼草': 210.0,
+            '轻灵草': 280.0,
+            '龙葵': 280.0,
+            '玄参': 210.0,
+            '弗兰草': 210.0,
+            '枫香脂': 210.0,
+            '炼魂珠': 210.0,
+            '玄冰花': 210.0,
+            '炼血珠': 210.0,
+            
+            '菩提花': 280.0,
+            '乌稠木': 280.0
+        };
+
+        const herbGrades = {
+            '九品药材': ['尘磊岩麟果', '离火梧桐芝', '剑魄竹笋', '明心问道果', '炼心芝', '重元换血草', '太乙碧莹花', '森檀木', '鬼面花', '梧桐木', '龙须藤', '地龙干'],
+            '八品药材': ['木灵三针花', '鎏鑫天晶草', '檀芒九叶花', '坎水玄冰果', '浩淼水藤', '道蕴花', '阴阳黄泉花', '厉魂血珀', '太清玄灵草', '冥胎骨', '狼桃', '霸王花'],
+            '七品药材': ['地心淬灵乳', '天麻翡石精', '八角玄冰草', '奇茸通天菊', '芒焰果', '问道花', '凤血果', '冰精芝', '血玉竹', '肠蚀草'],
+            '六品药材': ['三叶青芝', '七彩月兰', '三尾风叶', '冰灵焰草', '血菩提', '诱妖草', '混元果', '皇龙花', '黑天麻', '天剑笋'],
+            '五品药材': ['地心火芝', '天蝉灵叶', '雪玉骨参', '腐骨灵花', '穿心莲', '龙鳞果', '绝魂草', '月灵花', '伴妖草', '剑心竹'],
+            '四品药材': ['血莲精', '鸡冠草', '银精芝', '玉髓芝', '菩提花', '乌稠木', '雪凝花', '龙纹草', '石龙芮', '锦地罗', '冰灵果', '玉龙参'],
+            '三品药材': ['紫猴花', '幻心草', '九叶芝', '鬼臼草', '轻灵草', '龙葵', '玄参', '弗兰草', '枫香脂', '炼魂珠', '玄冰花', '炼血珠'],
+            '二品药材': ['五柳根', '天元果', '何首乌', '夜交藤', '流莹草', '夏枯草', '蛇涎果', '百草露', '风灵花', '伏龙参', '补天芝', '凌风花'],
+            '一品药材': ['恒心草', '红绫草', '罗犀草', '天青花', '宁心草', '宁神花', '凝血草', '银月花', '地黄参', '火精枣', '剑芦', '七星草']
+        };
+
+        /**
+         * 新版 extractInfo4 —— 同时支持两种背包格式
+         * 格式一：名字 - 数量：x 炼金 | 坊市数据
+         * 格式二：名字：xxx  + 拥有数量:x
+         * 自动识别品级，自动合并多页数据
+         */
+        function extractInfo4(text) {
+            const dict = {};
+            const CN = {'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9};
+
+            let curTier = null;
+            let pendingName = null;
+
+            const lines = text
+                .split(/\r?\n/)
+                .map(l => l.trim())
+                .filter(Boolean);
+
+            for (let ln of lines) {
+                // 跳过分页标记
+                if (/第\d+页\/共\d+页/.test(ln)) continue;
+
+                // 1) 品级识别（两种格式通用）
+                let mTier = ln.match(/(?:品级[:：]\s*)?([一二三四五六七八九]|[1-9])品药材/);
+                if (mTier) {
+                    curTier = CN[mTier[1]] ?? Number(mTier[1]);
+                    pendingName = null;
+                    continue;
+                }
+
+                // 2) 格式一：名字 - 数量：x 炼金 | 坊市数据
+                let m1 = ln.match(/^(.+?)\s*-\s*数量[:：]\s*(\d+)/);
+                if (m1 && curTier !== null) {
+                    const name = m1[1].trim();
+                    const cnt = Number(m1[2]);
+                    dict[name] = (dict[name] || 0) + cnt;
+                    continue;
+                }
+
+                // 3) 格式二：名字：xxx
+                let mName = ln.match(/^名字[:：]\s*(.+)$/);
+                if (mName) {
+                    pendingName = mName[1].trim();
+                    continue;
+                }
+
+                // 4) 格式二：拥有数量:xxx
+                let mCnt = ln.match(/^拥有数量[:：]\s*(\d+)/);
+                if (mCnt && pendingName !== null && curTier !== null) {
+                    const cnt = Number(mCnt[1]);
+                    dict[pendingName] = (dict[pendingName] || 0) + cnt;
+                    pendingName = null;
+                }
+            }
+
+            return dict;
+        }
+
+        function generateInstructions(herbDict) {
+            let instructions = [];
+            let totalProfit = 0;
+
+            for (const [name, quantity] of Object.entries(herbDict)) {
+                const pricePerUnit = herbPrices[name];
+                if (!pricePerUnit) continue;
+
+                const priceInGame = Math.floor(pricePerUnit * 10000);
+
+                let remaining = quantity;
+                while (remaining > 0) {
+                    const batchSize = Math.min(remaining, 10);
+                    remaining -= batchSize;
+
+                    const instruction = `确认坊市上架 ${name} ${priceInGame} ${batchSize}`;
+                    instructions.push(instruction);
+
+                    totalProfit += batchSize * pricePerUnit * 0.7;
+                }
+            }
+
+            return { instructions, totalProfit };
+        }
+
+        function generateSummary(herbDict) {
+            let summary = {};
+            
+            for (const grade in herbGrades) {
+                summary[grade] = 0;
+            }
+            
+            for (const [name, quantity] of Object.entries(herbDict)) {
+                for (const [grade, herbs] of Object.entries(herbGrades)) {
+                    if (herbs.includes(name)) {
+                        summary[grade] += quantity;
+                        break;
+                    }
+                }
+            }
+            
+            return summary;
+        }
+
+        function displayResults(instructions, totalProfit, summary) {
+            let resultHtml = '';
+            instructions.forEach((instruction, index) => {
+                resultHtml += `<div class="item"><span>${instruction}</span><button class="copy-button" data-text="${instruction}">复制</button></div>`;
+            });
+
+            let profitDisplay = '';
+            if (totalProfit >= 10000) {
+                profitDisplay = `${(totalProfit / 10000).toFixed(2)}亿`;
+            } else {
+                profitDisplay = `${totalProfit.toFixed(2)}万`;
+            }
+
+            document.getElementById('herb-info').innerHTML = resultHtml;
+            document.getElementById('profit-display').innerHTML = `总利润：${profitDisplay}`;
+            
+            let summaryHtml = '';
+            let totalHerbs = 0;
+            
+            for (const [grade, count] of Object.entries(summary)) {
+                totalHerbs += count;
+                if (count > 0) {
+                    summaryHtml += `<div class="summary-item"><span>${grade}</span><span>${count}个</span></div>`;
+                }
+            }
+            
+            summaryHtml += `<div class="summary-item" style="font-weight: bold; margin-top: 5px;"><span>总计</span><span>${totalHerbs}个</span></div>`;
+            
+            document.getElementById('summary-content').innerHTML = summaryHtml;
+        }
+
+        function setupCopyButtons() {
+            const copyTextarea = document.createElement('textarea');
+            copyTextarea.style.position = 'fixed';
+            copyTextarea.style.opacity = '0';
+            document.body.appendChild(copyTextarea);
+            
+            document.querySelectorAll('.copy-button').forEach(button => {
+                button.addEventListener('click', function () {
+                    const textToCopy = this.getAttribute('data-text');
+                    
+                    copyTextarea.value = textToCopy;
+                    copyTextarea.select();
+                    
+                    try {
+                        document.execCommand('copy');
+                    } catch (err) {
+                    }
+                });
+            });
+        }
+
+        document.getElementById('process-button').addEventListener('click', function () {
+            const userInputText = document.getElementById('user-input').value;
+            const herbDict = extractInfo4(userInputText);
+            
+            if (Object.keys(herbDict).length === 0) {
+                alert('未识别到药材信息，请检查输入格式');
+                return;
+            }
+
+            const { instructions, totalProfit } = generateInstructions(herbDict);
+            const summary = generateSummary(herbDict);
+            displayResults(instructions, totalProfit, summary);
+            setupCopyButtons();
+        });
+
+        document.getElementById('clear-button').addEventListener('click', function () {
+            document.getElementById('user-input').value = '';
+            document.getElementById('herb-info').innerHTML = '';
+            document.getElementById('profit-display').innerHTML = '';
+            document.getElementById('summary-content').innerHTML = '';
+        });
+
+        //爱来自剑舜
+    </script>
+</body>
+</html>
