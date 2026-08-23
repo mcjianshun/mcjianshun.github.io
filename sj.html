@@ -216,6 +216,7 @@
             '玉龙参': 290.0,
             '锦地罗': 280.0,
             '石龙芮': 280.0,
+            
             '恒心草': 280.0,
             '红绫草': 280.0,
             '罗犀草': 100.0,
@@ -228,6 +229,7 @@
             '火精枣': 280.0,
             '剑芦': 90.0,
             '七星草': 90.0,
+            
             '五柳根': 280.0,
             '天元果': 280.0,
             '何首乌': 140.0,
@@ -240,6 +242,7 @@
             '伏龙参': 280.0,
             '补天芝': 140.0,
             '凌风花': 140.0,
+            
             '紫猴花': 280.0,
             '幻心草': 210.0,
             '九叶芝': 280.0,
@@ -252,6 +255,7 @@
             '炼魂珠': 280.0,
             '玄冰花': 210.0,
             '炼血珠': 210.0,
+            
             '菩提花': 280.0,
             '乌稠木': 280.0,
             '灯心草': 280.0,
@@ -274,50 +278,41 @@
             '一品药材': ['恒心草', '红绫草', '罗犀草', '天青花', '宁心草', '宁神花', '凝血草', '银月花', '地黄参', '火精枣', '剑芦', '七星草']
         };
 
+        /**
+         * 新版 extractInfo4 —— 兼容 iOS 复制换行丢失问题
+         * 自动将“名字：”、“拥有数量：”、“品级：”前的空格替换为换行
+         * 同时支持两种背包格式
+         * 格式一：名字 - 数量：x 炼金 | 坊市数据
+         * 格式二：名字：xxx  + 拥有数量:x
+         * 自动识别品级，自动合并多页数据
+         */
         function extractInfo4(text) {
+            // ===== iOS 换行丢失补丁 =====
+            // 将关键字段前的空格转为换行，确保条目独立
+            text = text.replace(/(名字[:：])\s*/g, '\n$1');
+            text = text.replace(/(拥有数量[:：])\s*/g, '\n$1');
+            text = text.replace(/(品级[:：])\s*/g, '\n$1');
+            text = text.replace(/(第\d+页)/g, '\n$1');
+            // 清理多余空行
+            text = text.replace(/\n{2,}/g, '\n');
+            // ===== 补丁结束 =====
+
             const dict = {};
             const CN = {'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9};
 
-            let cleaned = text
-                .replace(/@[^\n]*/g, '')
-                .replace(/[\u200B-\u200D\uFEFF]/g, '')
-                .replace(/第\d+页[^\n]*/g, '');
-
-            let matchFound = false;
-
-            // 1) 先尝试松散跨行匹配：名字：xxx拥有数量:数字（支持两者间有任意字符，但不过度贪婪）
-            let loosePattern = /名字[:：]\s*([^\n]+?)\s*拥有数量[:：]\s*(\d+)/g;
-            let m;
-            while ((m = loosePattern.exec(cleaned)) !== null) {
-                matchFound = true;
-                const name = m[1].trim();
-                const cnt = Number(m[2]);
-                if (name && cnt > 0) {
-                    dict[name] = (dict[name] || 0) + cnt;
-                }
-            }
-            if (matchFound) return dict;
-
-            // 2) 再尝试匹配格式一（跨行）：名字 - 数量：数字
-            let format1Pattern = /名字[:：]\s*([^\n]+?)\s*-\s*数量[:：]\s*(\d+)/g;
-            while ((m = format1Pattern.exec(cleaned)) !== null) {
-                matchFound = true;
-                const name = m[1].trim();
-                const cnt = Number(m[2]);
-                if (name && cnt > 0) {
-                    dict[name] = (dict[name] || 0) + cnt;
-                }
-            }
-            if (matchFound) return dict;
-
-            // 3) 回退到逐行解析（保留原逻辑）
             let curTier = null;
             let pendingName = null;
-            const lines = cleaned.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+            const lines = text
+                .split(/\r?\n/)
+                .map(l => l.trim())
+                .filter(Boolean);
 
             for (let ln of lines) {
-                if (/第\d+页/.test(ln)) continue;
+                // 跳过分页标记（但已拆分，不会再出现，保留安全）
+                if (/第\d+页\/共\d+页/.test(ln)) continue;
 
+                // 1) 品级识别
                 let mTier = ln.match(/(?:品级[:：]\s*)?([一二三四五六七八九]|[1-9])品药材/);
                 if (mTier) {
                     curTier = CN[mTier[1]] ?? Number(mTier[1]);
@@ -325,6 +320,7 @@
                     continue;
                 }
 
+                // 2) 格式一：名字 - 数量：x 炼金 | 坊市数据
                 let m1 = ln.match(/^(.+?)\s*-\s*数量[:：]\s*(\d+)/);
                 if (m1 && curTier !== null) {
                     const name = m1[1].trim();
@@ -333,12 +329,14 @@
                     continue;
                 }
 
+                // 3) 格式二：名字：xxx
                 let mName = ln.match(/^名字[:：]\s*(.+)$/);
                 if (mName) {
                     pendingName = mName[1].trim();
                     continue;
                 }
 
+                // 4) 格式二：拥有数量:xxx
                 let mCnt = ln.match(/^拥有数量[:：]\s*(\d+)/);
                 if (mCnt && pendingName !== null && curTier !== null) {
                     const cnt = Number(mCnt[1]);
@@ -377,9 +375,11 @@
 
         function generateSummary(herbDict) {
             let summary = {};
+            
             for (const grade in herbGrades) {
                 summary[grade] = 0;
             }
+            
             for (const [name, quantity] of Object.entries(herbDict)) {
                 for (const [grade, herbs] of Object.entries(herbGrades)) {
                     if (herbs.includes(name)) {
@@ -388,6 +388,7 @@
                     }
                 }
             }
+            
             return summary;
         }
 
@@ -406,16 +407,19 @@
 
             document.getElementById('herb-info').innerHTML = resultHtml;
             document.getElementById('profit-display').innerHTML = `总利润：${profitDisplay}`;
-
+            
             let summaryHtml = '';
             let totalHerbs = 0;
+            
             for (const [grade, count] of Object.entries(summary)) {
                 totalHerbs += count;
                 if (count > 0) {
                     summaryHtml += `<div class="summary-item"><span>${grade}</span><span>${count}个</span></div>`;
                 }
             }
+            
             summaryHtml += `<div class="summary-item" style="font-weight: bold; margin-top: 5px;"><span>总计</span><span>${totalHerbs}个</span></div>`;
+            
             document.getElementById('summary-content').innerHTML = summaryHtml;
         }
 
@@ -423,6 +427,7 @@
             document.querySelectorAll('.copy-button').forEach(button => {
                 button.addEventListener('click', function () {
                     const textToCopy = this.getAttribute('data-text');
+
                     const copyTextarea = document.createElement('textarea');
                     copyTextarea.setAttribute('readonly', '');
                     copyTextarea.value = textToCopy;
@@ -431,6 +436,7 @@
                     copyTextarea.style.top = '0';
                     copyTextarea.style.opacity = '0';
                     document.body.appendChild(copyTextarea);
+
                     copyTextarea.select();
                     copyTextarea.setSelectionRange(0, textToCopy.length);
                     try {
@@ -438,6 +444,7 @@
                     } catch (err) {
                         console.warn('复制失败:', err);
                     }
+
                     copyTextarea.blur();
                     document.body.removeChild(copyTextarea);
                 });
@@ -447,7 +454,7 @@
         document.getElementById('process-button').addEventListener('click', function () {
             const userInputText = document.getElementById('user-input').value;
             const herbDict = extractInfo4(userInputText);
-
+            
             if (Object.keys(herbDict).length === 0) {
                 alert('未识别到药材信息，请检查输入格式');
                 return;
