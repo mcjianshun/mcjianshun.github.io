@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>查询上架v0.3</title>
+    <title>查询上架v0.4</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -137,7 +137,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>查询上架v0.3</h1>
+        <h1>查询上架v0.4</h1>
         <textarea id="user-input" placeholder="请输入药材背包内容..."></textarea>
         <button id="process-button">查上架</button>
         <button id="clear-button">清空</button>
@@ -147,7 +147,7 @@
             <div class="summary-title">药材品阶数量总结</div>
             <div id="summary-content"></div>
         </div>
-        <div class="copyright">Powered by 清游 · 版本 v0.3</div>
+        <div class="copyright">Powered by 清游 · 版本 v0.4</div>
     </div>
 
     <script>
@@ -278,14 +278,35 @@
             '一品药材': ['恒心草', '红绫草', '罗犀草', '天青花', '宁心草', '宁神花', '凝血草', '银月花', '地黄参', '火精枣', '剑芦', '七星草']
         };
 
+        /**
+         * 清理名字中的不可见字符（零宽空格、BOM等）
+         */
+        function cleanName(name) {
+            return name
+                .replace(/[\u200B-\u200D\uFEFF\u00A0\u180E\u2060]/g, '')
+                .trim();
+        }
+
+        /**
+         * 新版 extractInfo4 —— 兼容 iOS 复制换行丢失问题 & 不可见字符问题
+         * 自动将“名字：”、“拥有数量：”、“品级：”前的空格替换为换行
+         * 同时支持两种背包格式
+         * 格式一：名字 - 数量：x 炼金 | 坊市数据
+         * 格式二：名字：xxx  + 拥有数量:x
+         * 自动识别品级，自动合并多页数据
+         */
         function extractInfo4(text) {
-            // 将关键字段前的空格转为换行，确保条目独立
+            // ===== 清除所有不可见字符（零宽空格、BOM、不间断空格等） =====
+            text = text.replace(/[\u200B-\u200D\uFEFF\u180E\u2060]/g, '');
+            // 注意：\u00A0（不间断空格）保留，因为它可以当普通空格处理
+
+            // ===== iOS 换行丢失补丁 =====
             text = text.replace(/(名字[:：])\s*/g, '\n$1');
             text = text.replace(/(拥有数量[:：])\s*/g, '\n$1');
             text = text.replace(/(品级[:：])\s*/g, '\n$1');
             text = text.replace(/(第\d+页)/g, '\n$1');
-            // 清理多余空行
             text = text.replace(/\n{2,}/g, '\n');
+            // ===== 补丁结束 =====
 
             const dict = {};
             const CN = {'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9};
@@ -299,10 +320,8 @@
                 .filter(Boolean);
 
             for (let ln of lines) {
-                // 跳过分页标记
                 if (/第\d+页\/共\d+页/.test(ln)) continue;
 
-                // 1) 品级识别
                 let mTier = ln.match(/(?:品级[:：]\s*)?([一二三四五六七八九]|[1-9])品药材/);
                 if (mTier) {
                     curTier = CN[mTier[1]] ?? Number(mTier[1]);
@@ -310,23 +329,20 @@
                     continue;
                 }
 
-                // 2) 格式一：名字 - 数量：x 炼金 | 坊市数据
                 let m1 = ln.match(/^(.+?)\s*-\s*数量[:：]\s*(\d+)/);
                 if (m1 && curTier !== null) {
-                    const name = m1[1].trim();
+                    const name = cleanName(m1[1]);
                     const cnt = Number(m1[2]);
-                    dict[name] = (dict[name] || 0) + cnt;
+                    if (name) dict[name] = (dict[name] || 0) + cnt;
                     continue;
                 }
 
-                // 3) 格式二：名字：xxx
                 let mName = ln.match(/^名字[:：]\s*(.+)$/);
                 if (mName) {
-                    pendingName = mName[1].trim();
+                    pendingName = cleanName(mName[1]);
                     continue;
                 }
 
-                // 4) 格式二：拥有数量:xxx
                 let mCnt = ln.match(/^拥有数量[:：]\s*(\d+)/);
                 if (mCnt && pendingName !== null && curTier !== null) {
                     const cnt = Number(mCnt[1]);
@@ -463,7 +479,7 @@
             document.getElementById('summary-content').innerHTML = '';
         });
 
+        //爱来自剑舜
     </script>
 </body>
 </html>
-<!--爱来自剑舜-->
